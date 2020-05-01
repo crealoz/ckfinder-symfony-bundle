@@ -54,7 +54,7 @@ $config['images'] = array(
     'sizes' => array(
         'small'  => array('width' => 480, 'height' => 320, 'quality' => 80),
         'medium' => array('width' => 600, 'height' => 480, 'quality' => 80),
-        'large'  => array('width' => 800, 'height' => 600, 'quality' => 80)
+        'large'  => array('width' => 800, 'height' => 600, 'quality' => 81)
     )
 );
 
