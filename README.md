@@ -169,6 +169,11 @@ ckfinder:
         authenticationClass: App\CustomCKFinderAuth\CustomCKFinderAuth
 ```
 
+**Symfony 5**
+
+Should be done automatically.
+
+
 ## Configuration Options
 
 The default CKFinder connector configuration is taken from the `@CKSourceCKFinder/Resources/config/ckfinder_config.php` file.
