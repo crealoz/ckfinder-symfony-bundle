@@ -14,6 +14,7 @@ namespace CKSource\Bundle\CKFinderBundle\DependencyInjection;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
+use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
 
@@ -22,7 +23,7 @@ use Symfony\Component\DependencyInjection\Loader;
  *
  * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html}.
  */
-class CKSourceCKFinderExtension extends Extension implements PrependExtensionInterface
+class CKSourceCKFinderExtension extends ConfigurableExtension
 {
     /**
      * {@inheritdoc}
@@ -42,9 +43,14 @@ class CKSourceCKFinderExtension extends Extension implements PrependExtensionInt
     }
 
     /**
-     * {@inheritdoc}
+     * @return string
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function getAlias()
+    {
+        return 'ckfinder';
+    }
+
+    protected function loadInternal(array $mergedConfig, ContainerBuilder $container)
     {
         $fileLocator = new FileLocator(__DIR__.'/../Resources/config');
 
@@ -53,19 +59,11 @@ class CKSourceCKFinderExtension extends Extension implements PrependExtensionInt
         $loader->load('form.yml');
 
         $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $configs);
+        $config = $this->processConfiguration($configuration, $mergedConfig);
 
         $container->setParameter('ckfinder.connector.factory.class', $config['connector']['connectorFactoryClass']);
         $container->setParameter('ckfinder.connector.class', $config['connector']['connectorClass']);
         $container->setParameter('ckfinder.connector.auth.class', $config['connector']['authenticationClass']);
         $container->setParameter('ckfinder.connector.config', $config['connector']);
-    }
-
-    /**
-     * @return string
-     */
-    public function getAlias()
-    {
-        return 'ckfinder';
     }
 }
