@@ -11,6 +11,7 @@
 
 namespace CKSource\Bundle\CKFinderBundle\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -26,106 +27,210 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        if (method_exists(TreeBuilder::class, 'getRootNode')) {
-            $treeBuilder = new TreeBuilder('ckfinder');
-            $rootNode = $treeBuilder->getRootNode();
-        } else {
-            $treeBuilder = new TreeBuilder();
-            $rootNode = $treeBuilder->root('ckfinder');
-        }
-
-        $rootNode->append($this->addConnectorNode());
-
+        $treeBuilder = new TreeBuilder('ckfinder');
+        $rootNode = $this->getRootNode($treeBuilder, 'ckfinder');
+        $this->addGlobalOptions($rootNode);
+        $this->addBackendNode($rootNode);
+        $this->addImageNode($rootNode);
+        $this->addACLNode($rootNode);
+        $this->addConnectorNode($rootNode);
         return $treeBuilder;
     }
 
     /**
-     * Creates the part of the configuration related to the CKFinder connector.
-     *
-     * @return \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition
+     * @param ArrayNodeDefinition $rootNode
      */
-    public function addConnectorNode()
-    {
-        if (method_exists(TreeBuilder::class, 'getRootNode')) {
-            $treeBuilder = new TreeBuilder('connector');
-            $connectorNode = $treeBuilder->getRootNode();
-        } else {
-            $treeBuilder = new TreeBuilder();
-            $connectorNode = $treeBuilder->root('connector');
-        }
-
-        $connectorNode
+    private function addGlobalOptions(ArrayNodeDefinition $rootNode) {
+        $rootNode
             ->children()
-            ->setNodeClass('variableArray', 'CKSource\Bundle\CKFinderBundle\Config\Definition\Builder\VariableArrayNodeDefinition')
-            ->scalarNode('connectorFactoryClass')->defaultValue('CKSource\Bundle\CKFinderBundle\Factory\ConnectorFactory')->end()
-            ->scalarNode('connectorClass')->defaultValue('CKSource\CKFinder\CKFinder')->end()
-            ->scalarNode('authenticationClass')->defaultValue('CKSource\Bundle\CKFinderBundle\Authentication\Authentication')->end()
-            ->scalarNode('licenseName')->end()
-            ->scalarNode('licenseKey')->end()
-            ->arrayNode('privateDir')
-                ->children()
-                    ->scalarNode('backend')->defaultValue('default')->end()
-                    ->variableNode('tags')->defaultValue('.ckfinder/tags')->end()
-                    ->variableNode('logs')->defaultValue('.ckfinder/logs')->end()
-                    ->variableNode('cache')->defaultValue('.ckfinder/cache')->end()
-                    ->variableNode('thumbs')->defaultValue('.ckfinder/cache/thumbs')->end()
+                ->scalarNode('defaultResourceTypes')
+                    ->defaultValue('')
+                    ->info('Please check http://docs.cksource.com/ckfinder3-php/configuration.html#configuration_options_resourceTypes for configuration.')
                 ->end()
-            ->end()
-            ->arrayNode('images')
-                ->children()
-                    ->integerNode('maxWidth')->defaultValue(1600)->end()
-                    ->integerNode('maxHeight')->defaultValue(1200)->end()
-                    ->integerNode('quality')->defaultValue(80)->end()
-                    ->arrayNode('sizes')
+                ->scalarNode('licenseName')->defaultValue('')->end()
+                ->scalarNode('licenseKey')->defaultValue('')->end()
+                ->arrayNode('privateDir')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('backend')->defaultValue('default')->end()
+                        ->scalarNode('tags')->defaultValue('.ckfinder/tags')->end()
+                        ->scalarNode('logs')->defaultValue('.ckfinder/logs')->end()
+                        ->scalarNode('cache')->defaultValue('.ckfinder/cache')->end()
+                        ->scalarNode('thumbs')->defaultValue('.ckfinder/cache/thumbs')->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addBackendNode(ArrayNodeDefinition $rootNode){
+        $rootNode
+            ->children()
+                ->arrayNode('backends')
+                    ->useAttributeAsKey('name')
+                    ->arrayPrototype()
                         ->children()
-                            ->arrayNode('small')
+                            ->scalarNode('name')->end()
+                            ->scalarNode('adapter')->end()
+                            ->scalarNode('root')->end()
+                        ->end()
+                    ->end()
+                    ->children()
+                        ->arrayNode('default')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('name')->defaultValue('default')->end()
+                                ->scalarNode('adapter')->defaultValue('local')->end()
+                                ->scalarNode('baseUrl')->defaultValue('/userfiles/')->end()
+                                ->scalarNode('root')->defaultValue('%kernel.project_dir%/../public/userfiles')->end()
+                                ->scalarNode('chmodFiles')->defaultValue('0777')->end()
+                                ->scalarNode('chmodFolders')->defaultValue('0755')->end()
+                                ->scalarNode('filesystemEncoding')->defaultValue('UTF-8')->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('symfony_cache')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('name')->defaultValue('symfony_cache')->end()
+                                ->scalarNode('adapter')->defaultValue('local')->end()
+                                ->scalarNode('root')->defaultValue('%kernel.cache_dir%')->end()
+                            ->end()
+                        ->end()
+                        ->arrayNode('symfony_logs')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('name')->defaultValue('default')->end()
+                                ->scalarNode('adapter')->defaultValue('local')->end()
+                                ->scalarNode('root')->defaultValue('%kernel.logs_dir%')->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     */
+    private function addImageNode(ArrayNodeDefinition $rootNode){
+
+        $rootNode
+            ->children()
+                ->arrayNode('images')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->integerNode('maxWidth')->defaultValue(1600)->end()
+                        ->integerNode('maxHeight')->defaultValue(1200)->end()
+                        ->integerNode('quality')->defaultValue(80)->end()
+                        ->arrayNode('sizes')
+                            ->useAttributeAsKey('name')
+                            ->arrayPrototype()
                                 ->children()
-                                    ->integerNode('width')->defaultValue(480)->end()
-                                    ->integerNode('height')->defaultValue(320)->end()
-                                    ->integerNode('quality')->defaultValue(80)->end()
+                                    ->scalarNode('width')->end()
+                                    ->scalarNode('height')->end()
+                                    ->scalarNode('quality')->end()
                                 ->end()
                             ->end()
-                            ->arrayNode('medium')
-                                ->children()
-                                    ->integerNode('width')->defaultValue(600)->end()
-                                    ->integerNode('height')->defaultValue(480)->end()
-                                    ->integerNode('quality')->defaultValue(80)->end()
+                            ->children()
+                                ->arrayNode('small')
+                                    ->children()
+                                        ->integerNode('width')->defaultValue(480)->end()
+                                        ->integerNode('height')->defaultValue(320)->end()
+                                        ->integerNode('quality')->defaultValue(80)->end()
+                                    ->end()
                                 ->end()
-                            ->end()
-                            ->arrayNode('large')
-                                ->children()
-                                    ->integerNode('width')->defaultValue(800)->end()
-                                    ->integerNode('height')->defaultValue(600)->end()
-                                    ->integerNode('quality')->defaultValue(80)->end()
+                                ->arrayNode('medium')
+                                    ->children()
+                                        ->integerNode('width')->defaultValue(600)->end()
+                                        ->integerNode('height')->defaultValue(480)->end()
+                                        ->integerNode('quality')->defaultValue(80)->end()
+                                    ->end()
+                                ->end()
+                                ->arrayNode('large')
+                                    ->children()
+                                        ->integerNode('width')->defaultValue(800)->end()
+                                        ->integerNode('height')->defaultValue(600)->end()
+                                        ->integerNode('quality')->defaultValue(80)->end()
+                                    ->end()
                                 ->end()
                             ->end()
                         ->end()
                     ->end()
                 ->end()
-            ->end()
-            ->arrayNode('backends')
-                ->useAttributeAsKey('name', false)
-                ->prototype('variableArray')->requiresKeys(array('name', 'adapter'))->end()
-            ->end()
-            ->scalarNode('defaultResourceTypes')->end()
-            ->arrayNode('resourceTypes')
-                ->performNoDeepMerging()
-                ->prototype('array')
-                    ->children()
-                        ->scalarNode('name')->isRequired()->end()
-                        ->scalarNode('backend')->isRequired()->end()
-                        ->scalarNode('label')->end()
-                        ->scalarNode('directory')->end()
-                        ->scalarNode('allowedExtensions')->end()
-                        ->scalarNode('deniedExtensions')->end()
-                        ->scalarNode('maxSize')->end()
-                        ->booleanNode('lazyLoad')->end()
+                ->booleanNode('secureImageUploads')->defaultTrue()->end()
+            ->end();
+    }
+
+
+
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     */
+    private function addConnectorNode(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('resourceTypes')
+                    ->performNoDeepMerging()
+                    ->arrayPrototype()
+                        ->children()
+                            ->scalarNode('name')->isRequired()->end()
+                            ->scalarNode('backend')->isRequired()->end()
+                            ->scalarNode('label')->end()
+                            ->scalarNode('directory')->end()
+                            ->scalarNode('allowedExtensions')->end()
+                            ->scalarNode('deniedExtensions')->end()
+                            ->scalarNode('maxSize')->end()
+                            ->booleanNode('lazyLoad')->end()
+                        ->end()
                     ->end()
                 ->end()
-            ->end()
-            ->scalarNode('roleSessionVar')->end()
-            ->arrayNode('accessControl')
-                ->prototype('array')
+                ->booleanNode('overwriteOnUpload')->defaultFalse()->end()
+                ->booleanNode('checkDoubleExtension')->defaultTrue()->end()
+                ->booleanNode('disallowUnsafeCharacters')->defaultFalse()->end()
+                ->booleanNode('checkSizeAfterScaling')->defaultTrue()->end()
+                ->arrayNode('htmlExtensions')
+                    ->scalarPrototype()->end()
+                    ->defaultValue(array('html', 'htm', 'xml', 'js'))
+                ->end()
+                ->arrayNode('hideFolders')
+                    ->scalarPrototype()->end()
+                    ->defaultValue(array('.*', 'CVS', '__thumbs'))
+                ->end()
+                ->arrayNode('hideFiles')
+                    ->scalarPrototype()->end()
+                    ->defaultValue(array('.*'))
+                ->end()
+                ->booleanNode('forceAscii')->defaultFalse()->end()
+                ->booleanNode('xSendfile')->defaultFalse()->end()
+                ->booleanNode('debug')->defaultFalse()->end()
+                ->arrayNode('debugLoggers')
+                    ->scalarPrototype()->end()
+                    ->defaultValue(array('ckfinder_log', 'error_log', 'firephp'))
+                ->end()
+                ->arrayNode('plugins')
+                    ->prototype('variable')->end()
+                ->end()
+                ->arrayNode('cache')
+                    ->children()
+                        ->integerNode('imagePreview')->defaultValue(24 * 3600)->end()
+                        ->integerNode('thumbnails')->defaultValue(24 * 3600 * 365)->end()
+                        ->integerNode('proxyCommand')->defaultValue(0)->end()
+                    ->end()
+                ->end()
+                ->scalarNode('tempDirectory')->defaultValue('')->end()
+                ->booleanNode('sessionWriteClose')->defaultTrue()->end()
+                ->booleanNode('csrfProtection')->defaultTrue()->end()
+            ->end();
+    }
+
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     */
+    public function addACLNode(ArrayNodeDefinition $rootNode){
+        $rootNode
+            ->children()
+                ->scalarNode('roleSessionVar')->defaultValue('')->end()
+                ->arrayNode('accessControl')
                     ->children()
                         ->scalarNode('role')->isRequired()->end()
                         ->scalarNode('resourceType')->isRequired()->end()
@@ -142,46 +247,22 @@ class Configuration implements ConfigurationInterface
                         ->booleanNode('IMAGE_RESIZE_CUSTOM')->defaultTrue()->end()
                     ->end()
                 ->end()
-            ->end()
-            ->booleanNode('overwriteOnUpload')->defaultFalse()->end()
-            ->booleanNode('checkDoubleExtension')->defaultTrue()->end()
-            ->booleanNode('disallowUnsafeCharacters')->defaultFalse()->end()
-            ->booleanNode('secureImageUploads')->defaultTrue()->end()
-            ->booleanNode('checkSizeAfterScaling')->defaultTrue()->end()
-            ->arrayNode('htmlExtensions')
-                ->prototype('scalar')->end()
-                ->defaultValue(array('html', 'htm', 'xml', 'js'))
-            ->end()
-            ->arrayNode('hideFolders')
-                ->prototype('scalar')->end()
-                ->defaultValue(array('.*', 'CVS', '__thumbs'))
-            ->end()
-            ->arrayNode('hideFiles')
-                ->prototype('scalar')->end()
-                ->defaultValue(array('.*'))
-            ->end()
-            ->booleanNode('forceAscii')->defaultFalse()->end()
-            ->booleanNode('xSendfile')->defaultFalse()->end()
-            ->booleanNode('debug')->defaultFalse()->end()
-            ->arrayNode('debugLoggers')
-                ->prototype('scalar')->end()
-                ->defaultValue(array('ckfinder_log', 'error_log', 'firephp'))
-            ->end()
-            ->arrayNode('plugins')
-                ->prototype('variable')->end()
-            ->end()
-            ->arrayNode('cache')
-                ->children()
-                    ->integerNode('imagePreview')->defaultValue(24 * 3600)->end()
-                    ->integerNode('thumbnails')->defaultValue(24 * 3600 * 365)->end()
-                    ->integerNode('proxyCommand')->defaultValue(0)->end()
-                ->end()
-            ->end()
-            ->scalarNode('tempDirectory')->end()
-            ->booleanNode('sessionWriteClose')->defaultTrue()->end()
-            ->booleanNode('csrfProtection')->defaultTrue()->end()
-        ->end();
+            ->end();
+    }
 
-        return $connectorNode;
+
+    /**
+     * @param TreeBuilder $treeBuilder
+     * @param $name
+     * @return ArrayNodeDefinition|NodeDefinition
+     */
+    private function getRootNode(TreeBuilder $treeBuilder, $name)
+    {
+        // BC layer for symfony/config 4.1 and older
+        if (!method_exists($treeBuilder, 'getRootNode')) {
+            return $treeBuilder->root($name);
+        }
+
+        return $treeBuilder->getRootNode();
     }
 }

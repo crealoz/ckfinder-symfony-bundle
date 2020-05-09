@@ -190,4 +190,4 @@ $config['csrfProtection'] = true;
 
 /*============================== End of Configuration =================================*/
 
-$container->prependExtensionConfig('ckfinder', array( 'connector' => $config));
+$container->prependExtensionConfig('ckfinders', array( 'connector' => $config));

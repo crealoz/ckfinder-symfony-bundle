@@ -13,8 +13,6 @@ namespace CKSource\Bundle\CKFinderBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
-use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
 
@@ -23,47 +21,17 @@ use Symfony\Component\DependencyInjection\Loader;
  *
  * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html}.
  */
-class CKSourceCKFinderExtension extends ConfigurableExtension
+class CKSourceCKFinderExtension extends Extension
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function prepend(ContainerBuilder $container)
+
+    public function load(array $mergedConfig, ContainerBuilder $container)
     {
-        $fileLocator =  new FileLocator(__DIR__.'/../Resources/config');
-
-        $loader = new Loader\PhpFileLoader($container, $fileLocator);
-        $loader->load('ckfinder_config.php');
-
-        if ($container->hasExtension('twig')) {
-            $container->prependExtensionConfig('twig', [
-                'form_themes' => ['@CKSourceCKFinder/Form/fields.html.twig'],
-            ]);
-        }
-    }
-
-    /**
-     * @return string
-     */
-    public function getAlias()
-    {
-        return 'ckfinder';
-    }
-
-    protected function loadInternal(array $mergedConfig, ContainerBuilder $container)
-    {
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $mergedConfig);
+        $container->setParameter('ckfinder.config', $config);
         $fileLocator = new FileLocator(__DIR__.'/../Resources/config');
-
         $loader = new Loader\YamlFileLoader($container, $fileLocator);
         $loader->load('services.yml');
         $loader->load('form.yml');
-
-        $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $mergedConfig);
-
-        $container->setParameter('ckfinder.connector.factory.class', $config['connector']['connectorFactoryClass']);
-        $container->setParameter('ckfinder.connector.class', $config['connector']['connectorClass']);
-        $container->setParameter('ckfinder.connector.auth.class', $config['connector']['authenticationClass']);
-        $container->setParameter('ckfinder.connector.config', $config['connector']);
     }
 }
