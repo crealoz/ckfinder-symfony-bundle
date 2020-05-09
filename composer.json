@@ -25,8 +25,7 @@
     },
     "autoload": {
         "psr-4": {
-            "CKSource\\Bundle\\CKFinderBundle\\": "",
-            "CKSource\\CKFinder\\": "_connector"
+            "CKSource\\Bundle\\CKFinderBundle\\": "/src"
         }
     }
 }
