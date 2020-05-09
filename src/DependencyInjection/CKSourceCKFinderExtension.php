@@ -24,6 +24,11 @@ use Symfony\Component\DependencyInjection\Loader;
 class CKSourceCKFinderExtension extends Extension
 {
 
+    /**
+     * @param array $mergedConfig
+     * @param ContainerBuilder $container
+     * @throws \Exception
+     */
     public function load(array $mergedConfig, ContainerBuilder $container)
     {
         $configuration = new Configuration();

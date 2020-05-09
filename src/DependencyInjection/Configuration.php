@@ -11,6 +11,7 @@
 
 namespace CKSource\Bundle\CKFinderBundle\DependencyInjection;
 
+use CKSource\CKFinder\Controller\AjaxController;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -49,6 +50,7 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('licenseName')->defaultValue('')->end()
                 ->scalarNode('licenseKey')->defaultValue('')->end()
+                ->scalarNode('uploadDir')->defaultValue('%kernel.project_dir%/public/ckfinder/')->end()
                 ->arrayNode('privateDir')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -59,9 +61,18 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('thumbs')->defaultValue('.ckfinder/cache/thumbs')->end()
                     ->end()
                 ->end()
+                ->arrayNode('controller')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('download_file_action')->defaultValue(sprintf('%s::downloadFileAction', AjaxController::class))->end()
+                    ->end()
+                ->end()
             ->end();
     }
 
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     */
     private function addBackendNode(ArrayNodeDefinition $rootNode){
         $rootNode
             ->children()

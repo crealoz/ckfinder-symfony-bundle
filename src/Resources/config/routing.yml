@@ -1,0 +1,12 @@
+ckfinder_connector:
+    path:     /ckfinder/connector
+    defaults: { _controller: CKSource\Bundle\CKFinderBundle\Controller\CKFinderController::requestAction }
+
+ckfinder_connector_downloader:
+    path: /ckfinder/download/file/{type}
+    defaults:
+        _controller: '%ckfinder.controller.download_file_action%'
+    methods:
+        - GET
+    requirements:
+        type: '[A-z0-9_-]*'
