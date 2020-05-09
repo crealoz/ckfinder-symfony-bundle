@@ -2,7 +2,9 @@
 
 namespace CKSource\CKFinder\Service;
 
-class UrlGetter
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+class UrlHelper
 {
     private $router;
 
@@ -14,7 +16,7 @@ class UrlGetter
     public function generate($type =  null)
     {
         // generate a URL with route arguments
-        $userProfilePage = $this->router->generate('ckfinder_connector_downloader', [
+        return $this->router->generate('ckfinder_connector_downloader', [
             'type' => $type,
         ]);
     }
