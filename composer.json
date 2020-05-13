@@ -1,5 +1,5 @@
 {
-    "name": "ckfinder/ckfinder-symfony-bundle",
+    "name": "crealoz/ckfinder-symfony-bundle",
     "description": "CKFinder bundle for Symfony",
     "type": "symfony-bundle",
     "license": "MIT",
