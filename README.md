@@ -1,7 +1,7 @@
 CKFinder 3 Bundle for Symfony
 ===============================
 
-This repository contains the CKFinder 3 bundle for Symfony 3+.
+This repository contains the CKFinder 3 bundle for Symfony 5+.
 If you're looking for bundle for Symfony 2, please refer [here](https://github.com/ckfinder/ckfinder-symfony2-bundle).
 
 ## Installation
@@ -12,31 +12,7 @@ If you're looking for bundle for Symfony 2, please refer [here](https://github.c
 	composer require ckfinder/ckfinder-symfony-bundle
 	```
 
-2. Enable the bundle in `AppKernel.php`.
-
-    **Note:** This step is required only for Symfony 3. If you use Symfony 4
-    the bundle will be registered automatically.
-
-	``` php
-	// app/AppKernel.php
-	
-	public function registerBundles()
-	{
-		$bundles = [
-			// ...
-			new CKSource\Bundle\CKFinderBundle\CKSourceCKFinderBundle(),
-		];
-	}
-	```	
-
-3. Run the command to download the CKFinder distribution package.
-
-	After installing the bundle you need to download CKFinder distribution package. It is not shipped
-	with the bundle due to different license terms. To install it, run the following Symfony command:
-	
-	```bash
-	php bin/console ckfinder:download
-	```
+2. Run the command to download the CKFinder distribution package.
 	
 	It will download the code and place it in the `Resource/public` directory of the bundle. After that you may also want to install
 	assets, so the public directory will be updated with CKFinder code.
@@ -59,7 +35,7 @@ If you're looking for bundle for Symfony 2, please refer [here](https://github.c
 	    prefix:   /
 	```
 	
-	**Symfony 4**
+	**Symfony 4+**
 	
 	Create `config/routes/ckfinder.yml` with following contents:
 	
@@ -80,7 +56,7 @@ If you're looking for bundle for Symfony 2, please refer [here](https://github.c
 	mkdir -m 777 web/userfiles
 	```
 	
-	**Symfony 4**
+	**Symfony 4+**
 	
 	```bash
     mkdir -m 777 public/userfiles
@@ -168,11 +144,6 @@ ckfinder:
     connector:
         authenticationClass: App\CustomCKFinderAuth\CustomCKFinderAuth
 ```
-
-**Symfony 5**
-
-Should be done automatically.
-
 
 ## Configuration Options
 
