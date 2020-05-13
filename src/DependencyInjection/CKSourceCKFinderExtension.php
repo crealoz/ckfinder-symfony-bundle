@@ -13,7 +13,7 @@ namespace CKSource\Bundle\CKFinderBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 use Symfony\Component\DependencyInjection\Loader;
 
 /**
@@ -21,7 +21,7 @@ use Symfony\Component\DependencyInjection\Loader;
  *
  * To learn more see {@link http://symfony.com/doc/current/cookbook/bundles/extension.html}.
  */
-class CKSourceCKFinderExtension extends Extension
+class CKSourceCKFinderExtension extends ConfigurableExtension
 {
 
     /**
@@ -29,13 +29,11 @@ class CKSourceCKFinderExtension extends Extension
      * @param ContainerBuilder $container
      * @throws \Exception
      */
-    public function load(array $mergedConfig, ContainerBuilder $container)
+    public function loadInternal(array $mergedConfig, ContainerBuilder $container)
     {
-        $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $mergedConfig);
-        $container->setParameter('ckfinder.config', $config);
         $loader = new Loader\YamlFileLoader($container,  new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');
         $loader->load('form.yml');
+        $container->setParameter('ckfinder.config', $mergedConfig);
     }
 }
